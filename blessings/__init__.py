@@ -18,6 +18,7 @@ from platform import python_version_tuple
 import struct
 import sys
 from termios import TIOCGWINSZ
+import warnings
 
 
 __all__ = ['Terminal']
@@ -101,8 +102,12 @@ class Terminal(object):
             # init sequences to the stream if it has a file descriptor, and
             # send them to stdout as a fallback, since they have to go
             # somewhere.
-            setupterm(kind or environ.get('TERM', 'unknown'),
-                      self._init_descriptor)
+            try:
+                setupterm(kind or environ.get('TERM', 'unknown'),
+                          self._init_descriptor)
+            except curses.error:
+                self._kind = None
+                self._does_styling = False
 
         self.stream = stream
 
